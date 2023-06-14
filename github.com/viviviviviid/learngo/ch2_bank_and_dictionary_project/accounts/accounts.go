@@ -1,4 +1,4 @@
-package banking
+package accounts
 
 /// @title public한 struct, 즉 아무나 접근 가능
 // Account struct
@@ -21,7 +21,19 @@ type Account struct {
 func NewAccount(owner string) *Account {
 	account := Account{owner: owner, balance: 0}
 	return &account // 새로 만들어진 복사본을 return하는게 아닌, 메모리 주소를 return.
+	// 이렇게 한다면 main.go에서, account.balance = 10000 이런식으로 public하게 사용불가.
+	// account.balance는 private 하기 때문에.
 }
 
-// 이렇게 한다면 main.go에서, account.balance = 10000 이런식으로 public하게 사용불가.
-// account.balance는 private 하기 때문에.
+// / @title 'method' 만들기
+// func 다음에 나오는 (a Account)는 Receiver로 이름을 아무렇게나 지을수는 있지만,
+// 규칙에 의거하여 현재 이용하려는 struct인 Account의 첫글자인 A의 소문자를 사용해야함. ex (b, Banking)
+// Deposit x amount on your amount.
+func (a Account) Deposit(amount int) {
+	a.balance += amount
+}
+
+// Balance of your Account
+func (a Account) Balance() int {
+	return a.balance
+}
