@@ -6,20 +6,39 @@ import (
 	mydict "github.com/m/viviviviviid/learngo/ch2_bank_and_dictionary_project/dict"
 )
 
-// @title mydict.go
+// / @title
 func main() {
-	dictionary := mydict.Dictionary{"first": "First word"}
-	// 기본
-	// definition, err := dictionary.Search("first")
+	word := "hello"
+	definition := "Greeting"
 
-	// 없는 second를 찾아서 에러 발생시키기.
-	definition, err := dictionary.Search("second")
+	dictionary := mydict.Dictionary{}
+	err := dictionary.Add(word, definition)
 	if err != nil {
 		fmt.Println(err)
-	} else {
-		fmt.Println(definition)
 	}
+	value, err := dictionary.Search(word)
+	fmt.Println(value)
+	err2 := dictionary.Add(word, definition)
+	if err2 != nil { // 이미 존재하므로 에러
+		fmt.Println(err2)
+	}
+
 }
+
+// / @title Search in dict
+// func main() {
+// 	dictionary := mydict.Dictionary{"first": "First word"}
+// 	// 기본
+// 	// definition, err := dictionary.Search("first")
+
+// 	// 없는 second를 찾아서 에러 발생시키기.
+// 	definition, err := dictionary.Search("second")
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	} else {
+// 		fmt.Println(definition)
+// 	}
+// }
 
 // / @title accounts.go
 // func main() {
