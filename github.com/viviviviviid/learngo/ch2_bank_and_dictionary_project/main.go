@@ -6,23 +6,40 @@ import (
 	mydict "github.com/m/viviviviviid/learngo/ch2_bank_and_dictionary_project/dict"
 )
 
-// / @title Add something to dictionary
+// / @title Make more methods!
 func main() {
-	word := "hello"
-	definition := "Greeting"
-
 	dictionary := mydict.Dictionary{}
-	err := dictionary.Add(word, definition)
+	baseWord := "hello"
+	dictionary.Add(baseWord, "First")
+	fmt.Println(dictionary)
+	err := dictionary.Update(baseWord, "Second")
 	if err != nil {
 		fmt.Println(err)
 	}
-	value, err := dictionary.Search(word)
-	fmt.Println(value)
-	err2 := dictionary.Add(word, definition)
-	if err2 != nil { // 이미 존재하므로 에러
-		fmt.Println(err2)
-	}
+	fmt.Println(dictionary)
+	// Delete
+	dictionary.Delete(baseWord)
+	fmt.Println(dictionary)
+
 }
+
+// / @title Add something to dictionary
+// func main() {
+// 	word := "hello"
+// 	definition := "Greeting"
+
+// 	dictionary := mydict.Dictionary{}
+// 	err := dictionary.Add(word, definition)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	value, err := dictionary.Search(word)
+// 	fmt.Println(value)
+// 	err2 := dictionary.Add(word, definition)
+// 	if err2 != nil { // 이미 존재하므로 에러
+// 		fmt.Println(err2)
+// 	}
+// }
 
 // / @title Search in dictionary
 // func main() {
