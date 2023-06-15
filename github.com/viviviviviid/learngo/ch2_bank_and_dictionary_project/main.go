@@ -17,17 +17,18 @@ import (
 // / @title 'constructor' 만들기
 func main() {
 	account := accounts.NewAccount("nico")
-	fmt.Println("account: ", account)
 	// account.balance = 10000 이런식으로 public하게 사용불가.
 	// account.balance는 private 하기 때문에. // banking.go 파일 참고.
 	// 그래서 메소드를 만들고 이용해야함.
-	account.Deposit(10)            // accounts.go에서 만든 메소드
+	account.Deposit(20)            // accounts.go에서 만든 메소드
 	fmt.Println(account.Balance()) // .Balance도 accounts.go에서 만든 메소드
 
-	err := account.Withdraw(20) // 에러 핸들링을 통해서, 금액이 음수값이 안나오게 에러 코드를 출력
+	err := account.Withdraw(10) // 에러 핸들링을 통해서, 금액이 음수값이 안나오게 에러 코드를 출력
 	if err != nil {             // 에러가 있다면
 		log.Fatalln(err) // 종료시키면서 에러코드 출력 // error을 체크하도록 강제하는 golang
 	}
-
-	fmt.Println(account.Balance())
+	fmt.Println(account.Balance(), account.Owner())
+	account.ChangeOwner("minseok")
+	fmt.Println(account.Balance(), account.Owner())
+	fmt.Println(account)
 }

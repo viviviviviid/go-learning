@@ -1,6 +1,9 @@
 package accounts
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 /// @title public한 struct, 즉 아무나 접근 가능
 // Account struct
@@ -66,4 +69,21 @@ func (a *Account) Withdraw(amount int) error { // 에러를 리턴
 	}
 	a.balance -= amount
 	return nil // null, none과 같음
+}
+
+// Owner of the account
+func (a *Account) ChangeOwner(newOwners string) {
+	a.owner = newOwners
+}
+
+// Owner of the account
+func (a Account) Owner() string {
+	return a.owner
+}
+
+// Struct Calling
+func (a Account) String() string {
+	return fmt.Sprint(a.Owner(), "'s account.\nHas: ", a.Balance())
+	// 위와 같이 Account 구조체를 출력할때마다 이 내용이 출력.
+	// main.go 에는 fmt.Println(account)가 있음. 뒤에 .balance 이런것 없이.
 }
