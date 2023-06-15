@@ -6,7 +6,7 @@ import (
 	mydict "github.com/m/viviviviviid/learngo/ch2_bank_and_dictionary_project/dict"
 )
 
-// / @title
+// / @title Add something to dictionary
 func main() {
 	word := "hello"
 	definition := "Greeting"
@@ -22,10 +22,9 @@ func main() {
 	if err2 != nil { // 이미 존재하므로 에러
 		fmt.Println(err2)
 	}
-
 }
 
-// / @title Search in dict
+// / @title Search in dictionary
 // func main() {
 // 	dictionary := mydict.Dictionary{"first": "First word"}
 // 	// 기본
