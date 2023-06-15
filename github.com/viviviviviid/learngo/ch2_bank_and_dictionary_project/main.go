@@ -17,9 +17,22 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Println(dictionary)
+
 	// Delete
-	dictionary.Delete(baseWord)
-	fmt.Println(dictionary)
+	check1, err1 := dictionary.Delete(baseWord)
+	if err != nil {
+		fmt.Println(err1)
+	} else {
+		fmt.Println("Delete word: ", check1)
+	}
+
+	// One more delete for Error Message
+	check2, err2 := dictionary.Delete(baseWord)
+	if err2 != nil {
+		fmt.Println(err2)
+	} else {
+		fmt.Println("Delete word: ", check2)
+	}
 
 }
 

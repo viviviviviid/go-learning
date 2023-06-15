@@ -1,6 +1,8 @@
 package mydict
 
-import "errors"
+import (
+	"errors"
+)
 
 // Dictionary type
 type Dictionary map[string]string
@@ -9,6 +11,7 @@ var (
 	errNotFound   = errors.New("Not Found")
 	errWordExists = errors.New("That already exists")
 	errCantUpdate = errors.New("Cant update non-existing word")
+	errCantDelete = errors.New("Cant delete non-existing word")
 )
 
 // Search for a word
@@ -48,7 +51,21 @@ func (d Dictionary) Update(word, definition string) error {
 	return nil
 }
 
-// Deleten a word
-func (d Dictionary) Delete(word string) {
+// Delete a word
+// func (d Dictionary) Delete(word string) {
+// 	// 내장 함수인 delete는 아무것도 반환하지 않는 함수이고, 해당되는 key가 없다면 아무것도 하지 않음.
+// 	delete(d, word)
+// 	// 특정 key가 없어도 아무것도 안일어남.
+// 	delete(d, "adsjkdlqj")
+// }
+
+// Delete a word (improved)
+func (d Dictionary) Delete(word string) (string, error) {
+	// 우리가 search로 값이 있는지 확인하고, 없다면 없다고 알려주고, 있으면 제거후 제거했다고 알림
+	_, err := d.Search(word)
+	if err == errNotFound {
+		return "", errCantDelete
+	}
 	delete(d, word)
+	return word, nil
 }
