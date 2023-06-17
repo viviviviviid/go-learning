@@ -38,6 +38,11 @@ package main
 // 	for _, value := range nico {
 // 		fmt.Println(value)
 // 	}
+
+// // var results map[string]string 이런식으로 map을 정의한 뒤, 안에 값을 집어넣으면 panic이라는 컴파일러도 어떤 원인인지 모르는 에러가 발생함
+// // 즉 우리는 map을 선언한 뒤 초기화를 시켜줘야함.
+// // var results := map[string]string{}. 이런 식으로 맨뒤에 중괄호 쳐주면서 빈 맵으로 초기화
+// // 또는 map을 만들어주는 함수 make()를 이용. >>> var results = make(map[string]string)
 // }
 
 /// @title Arrays -> 길이 제한이 없는 배열 : "slice" => "[]"
