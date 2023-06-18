@@ -112,9 +112,9 @@ import (
 // 	c <- person + " is sexy"
 // }
 
-// / @title modified hitURL with Channel of goroutines
+// / @title Make complete hitURL with Channel of goroutines
 
-type result struct {
+type requestResult struct {
 	url    string
 	status string
 }
@@ -122,9 +122,8 @@ type result struct {
 var errRequestFailed = errors.New("Request Failed")
 
 func main() {
-	// map으로 초기화 된 map을 생성. 만약 초기화 안하고 값을 넣으려 한다면 panic이라는 원인불명의 에러가 발생
 	results := make(map[string]string)
-	c := make(chan result)
+	c := make(chan requestResult)
 	urls := []string{
 		"https://www.airbnb.com/",
 		"https://www.google.com/",
@@ -135,22 +134,28 @@ func main() {
 		"https://www.facebook.com/",
 		"https://www.instagram.com/",
 		"https://academy.nomadcoders.co/",
-		"https://error.erorrorroro.com",
 	}
 
-	// 두가지 값이 나오는데, 첫번째는 인덱스, 두번째가 내용
 	for _, url := range urls {
 		go hitURL(url, c)
 	}
 
+	for i := 0; i < len(urls); i++ {
+		result := <-c
+		results[result.url] = result.status
+	}
+
+	for url, status := range results {
+		fmt.Println(url, status)
+	}
+
 }
-func hitURL(url string, c chan<- result) { // "chan<-" : "This channel is send only"
-	fmt.Println("Checking: ", url)
+func hitURL(url string, c chan<- requestResult) { // "chan<-" : "This channel is send only"
 	resp, err := http.Get(url)
 	status := "OK"
 	if err != nil || resp.StatusCode >= 400 {
-		c <- result{url: url, status: "FAILED"} // result struct에 담아서 전송
+		c <- requestResult{url: url, status: "FAILED"} // requestResult struct에 담아서 전송
 	}
-	c <- result{url: url, status: status}
+	c <- requestResult{url: url, status: status}
 
 }
