@@ -1,11 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"time"
+	"net/http"
 )
 
-/// @title hitURL start
+// / @title hitURL start
 // var errRequestFailed = errors.New("Request Failed")
 //
 // func main() {
@@ -93,20 +94,63 @@ import (
 // }
 
 // / @title Loop of Channel
-func main() {
-	c := make(chan string)
-	people := [5]string{"nico", "flynn", "dal", "japanguy", "larry"}
-	for _, person := range people {
-		go isSexy(person, c)
-	}
-	for i := 0; i < len(people); i++ {
-		fmt.Print("waiting for ", i, ": ") // 밑에 blocking operation인 "<-"이 있으므로, 0번으로 기다리고있다가, 동시적으로 들어오므로 순식간에 4까지 진행 될것임.
-		// 하나하나 채널로 받던 이전 내용과는 다르게, 반복문을 사용해서 깔끔하게 처리.
-		fmt.Println(<-c)
-	}
+// func main() {
+// 	c := make(chan string)
+// 	people := [5]string{"nico", "flynn", "dal", "japanguy", "larry"}
+// 	for _, person := range people {
+// 		go isSexy(person, c)
+// 	}
+// 	for i := 0; i < len(people); i++ {
+// 		fmt.Print("waiting for ", i, ": ") // 밑에 blocking operation인 "<-"이 있으므로, 0번으로 기다리고있다가, 동시적으로 들어오므로 순식간에 4까지 진행 될것임.
+// 		// 하나하나 채널로 받던 이전 내용과는 다르게, 반복문을 사용해서 깔끔하게 처리.
+// 		fmt.Println(<-c)
+// 	}
+// }
+//
+// func isSexy(person string, c chan string) {
+// 	time.Sleep(time.Second * 3)
+// 	c <- person + " is sexy"
+// }
+
+// / @title modified hitURL with Channel of goroutines
+
+type result struct {
+	url    string
+	status string
 }
 
-func isSexy(person string, c chan string) {
-	time.Sleep(time.Second * 3)
-	c <- person + " is sexy"
+var errRequestFailed = errors.New("Request Failed")
+
+func main() {
+	// map으로 초기화 된 map을 생성. 만약 초기화 안하고 값을 넣으려 한다면 panic이라는 원인불명의 에러가 발생
+	results := make(map[string]string)
+	c := make(chan result)
+	urls := []string{
+		"https://www.airbnb.com/",
+		"https://www.google.com/",
+		"https://www.amazon.com/",
+		"https://www.reddit.com/",
+		"https://www.google.com/",
+		"https://soundcloud.com/",
+		"https://www.facebook.com/",
+		"https://www.instagram.com/",
+		"https://academy.nomadcoders.co/",
+		"https://error.erorrorroro.com",
+	}
+
+	// 두가지 값이 나오는데, 첫번째는 인덱스, 두번째가 내용
+	for _, url := range urls {
+		go hitURL(url, c)
+	}
+
+}
+func hitURL(url string, c chan<- result) { // "chan<-" : "This channel is send only"
+	fmt.Println("Checking: ", url)
+	resp, err := http.Get(url)
+	status := "OK"
+	if err != nil || resp.StatusCode >= 400 {
+		c <- result{url: url, status: "FAILED"} // result struct에 담아서 전송
+	}
+	c <- result{url: url, status: status}
+
 }
