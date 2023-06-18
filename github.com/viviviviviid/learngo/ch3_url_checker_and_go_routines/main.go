@@ -100,12 +100,13 @@ func main() {
 		go isSexy(person, c)
 	}
 	for i := 0; i < len(people); i++ {
+		fmt.Print("waiting for ", i, ": ") // 밑에 blocking operation인 "<-"이 있으므로, 0번으로 기다리고있다가, 동시적으로 들어오므로 순식간에 4까지 진행 될것임.
 		// 하나하나 채널로 받던 이전 내용과는 다르게, 반복문을 사용해서 깔끔하게 처리.
 		fmt.Println(<-c)
 	}
 }
 
 func isSexy(person string, c chan string) {
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 3)
 	c <- person + " is sexy"
 }
