@@ -68,28 +68,44 @@ import (
 // }
 
 // / @title Channel(like pipe) of goroutines
-func main() {
-	// chan : channel의 타입, chan bool : 메인과의 채널로 bool 값을 보내주겠다
-	channel := make(chan bool)
-	people := [2]string{"nico", "flynn"}
+// func main() {
+// 	// chan : channel의 타입, chan bool : 메인과의 채널로 bool 값을 보내주겠다
+// 	c := make(chan string)
+// 	people := [2]string{"nico", "flynn"}
+//
+// 	for _, person := range people {
+// 		// goroutines의 go로는 아래와 같이 못함.
+// 		// result := go isSexy(person) // return문은 안먹히므로 -> 채널로만 진행해야함
+// 		go isSexy(person, c)
+// 	}
+// 	fmt.Println("Waiting for message")
+// 	result := <-c                                  // 채널을 통해 값을 받는 방법
+// 	fmt.Println("Received this message: ", result) // "<-" 이건 채널을 통해 값을 받고 있다는 뜻이고, 이때는 메인문이 멈춰짐 // blocking operation
+// 	// 하나의 값을 받으면 다음 라인으로 넘어감 // 그전까지는 멈춤
+// 	fmt.Println("Received this message: ", <-c) // 하나의 채널로 두개 받기 // 다른 형식
+// 	// fmt.Println(<-c) // 하나의 채널로 두개만 보냈기에 세개째에는 오류가 발생함. // 메세지는 기다리고 있지만 goroutines이 종료되었기에.
+// }
+//
+// func isSexy(person string, c chan string) { // 채널을 통해 어떤 타입을 보낼지 go에게 인지시켜 줘야함
+// 	time.Sleep(time.Second * 5)
+// 	// return true // return은 안먹히므로, 채널로 보내줘야함
+// 	c <- person + " is sexy" // 이게 채널을 통해 값을 메인으로 보내는 방법
+// }
 
+// / @title Loop of Channel
+func main() {
+	c := make(chan string)
+	people := [5]string{"nico", "flynn", "dal", "japanguy", "larry"}
 	for _, person := range people {
-		// goroutines의 go로는 아래와 같이 못함.
-		// result := go isSexy(person) // return문은 안먹히므로 -> 채널로만 진행해야함
-		go isSexy(person, channel)
+		go isSexy(person, c)
 	}
-	// result := <-channel // 채널을 통해 값을 받는 방법 // 메세지를 하나 받을때까지 기다림.
-	// fmt.Println(result)
-	// 아래와 같이 해도 됨.
-	fmt.Println("채널 통해 받은 후", <-channel)
-	fmt.Println("채널 통해 받은 후", <-channel) // 하나의 채널로 두개 받기
-	// fmt.Println(<-channel) // 하나의 채널로 두개만 보냈기에 세개째에는 오류가 발생함. // 메세지는 기다리고 있지만 goroutines이 종료되었기에.
+	for i := 0; i < len(people); i++ {
+		// 하나하나 채널로 받던 이전 내용과는 다르게, 반복문을 사용해서 깔끔하게 처리.
+		fmt.Println(<-c)
+	}
 }
 
-func isSexy(person string, channel chan bool) {
+func isSexy(person string, c chan string) {
 	time.Sleep(time.Second * 5)
-	fmt.Println("채널로 보내기 전", person)
-	// 이걸론 안먹히므로, 채널로 보내줘야함
-	// return true
-	channel <- true // 이게 채널을 통해 값을 메인으로 보내는 방법
+	c <- person + " is sexy"
 }
