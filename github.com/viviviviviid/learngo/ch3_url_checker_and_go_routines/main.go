@@ -53,13 +53,13 @@ import (
 // 	return nil
 // }
 
-// / @title Start Go Routines
+// / @title Start goroutines
 // func main() {
 // 	go sexyCount("nico")
 // 	go sexyCount("flynn")
 // 	time.Sleep(time.Second * 5)
 // }
-// 
+//
 // func sexyCount(person string) {
 // 	for i := 0; i < 10; i++ {
 // 		fmt.Println(person, "is sexy", i)
@@ -67,10 +67,29 @@ import (
 // 	}
 // }
 
+// / @title Channel(like pipe) of goroutines
 func main() {
+	// chan : channel의 타입, chan bool : 메인과의 채널로 bool 값을 보내주겠다
+	channel := make(chan bool)
 	people := [2]string{"nico", "flynn"}
+
 	for _, person := range people {
-		go
+		// goroutines의 go로는 아래와 같이 못함.
+		// result := go isSexy(person) // return문은 안먹히므로 -> 채널로만 진행해야함
+		go isSexy(person, channel)
 	}
-	time.Sleep
+	// result := <-channel // 채널을 통해 값을 받는 방법 // 메세지를 하나 받을때까지 기다림.
+	// fmt.Println(result)
+	// 아래와 같이 해도 됨.
+	fmt.Println("채널 통해 받은 후", <-channel)
+	fmt.Println("채널 통해 받은 후", <-channel) // 하나의 채널로 두개 받기
+	// fmt.Println(<-channel) // 하나의 채널로 두개만 보냈기에 세개째에는 오류가 발생함. // 메세지는 기다리고 있지만 goroutines이 종료되었기에.
+}
+
+func isSexy(person string, channel chan bool) {
+	time.Sleep(time.Second * 5)
+	fmt.Println("채널로 보내기 전", person)
+	// 이걸론 안먹히므로, 채널로 보내줘야함
+	// return true
+	channel <- true // 이게 채널을 통해 값을 메인으로 보내는 방법
 }
