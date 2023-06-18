@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 )
@@ -113,13 +112,10 @@ import (
 // }
 
 // / @title Make complete hitURL with Channel of goroutines
-
 type requestResult struct {
 	url    string
 	status string
 }
-
-var errRequestFailed = errors.New("Request Failed")
 
 func main() {
 	results := make(map[string]string)
@@ -135,20 +131,16 @@ func main() {
 		"https://www.instagram.com/",
 		"https://academy.nomadcoders.co/",
 	}
-
 	for _, url := range urls {
 		go hitURL(url, c)
 	}
-
 	for i := 0; i < len(urls); i++ {
 		result := <-c
 		results[result.url] = result.status
 	}
-
 	for url, status := range results {
 		fmt.Println(url, status)
 	}
-
 }
 func hitURL(url string, c chan<- requestResult) { // "chan<-" : "This channel is send only"
 	resp, err := http.Get(url)
@@ -157,5 +149,4 @@ func hitURL(url string, c chan<- requestResult) { // "chan<-" : "This channel is
 		c <- requestResult{url: url, status: "FAILED"} // requestResult struct에 담아서 전송
 	}
 	c <- requestResult{url: url, status: status}
-
 }
