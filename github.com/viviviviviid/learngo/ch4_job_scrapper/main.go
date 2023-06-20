@@ -9,7 +9,14 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-var baseURL string = "https://www.saramin.co.kr/zf_user/search/recruit?=&searchword=blockchain&recruitSort=relation&recruitPageCount=50"
+type extractJob struct {
+	id       string
+	title    string
+	location string
+	sector   string
+}
+
+var baseURL string = "https://www.saramin.co.kr/zf_user/search/recruit?=&searchword=blockchain&exp_min=1&exp_max=1&recruitSort=relation&recruitPageCount=3"
 
 func main() {
 	totlaPages := getPages()
@@ -21,7 +28,27 @@ func main() {
 
 func getPage(page int) {
 	pageURL := baseURL + "&recruitPage=" + strconv.Itoa(page) // strconv.Itoa() : go에서 지원하는 string으로 바꾸는 함수
-	fmt.Println(pageURL)
+	fmt.Println("Requesting ", pageURL)
+	res, err := http.Get(pageURL)
+	checkErr(err)
+	checkCode(res)
+
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	searchCards := doc.Find(".item_recruit")
+	searchCards.Each(func(i int, card *goquery.Selection) { // 현재 찾은건 각각의 카드
+		id, _ := card.Attr("value")
+		fmt.Println(id)
+		title := card.Find(".area_job>.job_tit>a").Text()
+		fmt.Println(title)
+		location := card.Find(".area_job>.job_condition>span>a").Text()
+		fmt.Println(location)
+		sector := card.Find(".area_job>.job_sector>a").Text()
+		fmt.Println(sector)
+	})
 }
 
 func getPages() int {
@@ -58,4 +85,9 @@ func checkCode(res *http.Response) {
 	if res.StatusCode != 200 {
 		log.Fatalln("Request failed with Status", res.StatusCode)
 	}
+}
+
+func cleanString(str string) string {
+
+	return str
 }
