@@ -5,11 +5,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-type extractJob struct {
+type extractedJob struct {
 	id       string
 	title    string
 	location string
@@ -19,14 +20,19 @@ type extractJob struct {
 var baseURL string = "https://www.saramin.co.kr/zf_user/search/recruit?=&searchword=blockchain&exp_min=1&exp_max=1&recruitSort=relation&recruitPageCount=3"
 
 func main() {
+	var jobs []extractedJob
 	totlaPages := getPages()
 
 	for i := 0; i < totlaPages; i++ {
-		getPage(i + 1)
+		extractedJobs := getPage(i)
+		jobs = append(jobs, extractedJobs...) // 하나의 배열로 합침
 	}
+
+	fmt.Println(jobs)
 }
 
-func getPage(page int) {
+func getPage(page int) []extractedJob {
+	var jobs []extractedJob
 	pageURL := baseURL + "&recruitPage=" + strconv.Itoa(page) // strconv.Itoa() : go에서 지원하는 string으로 바꾸는 함수
 	fmt.Println("Requesting ", pageURL)
 	res, err := http.Get(pageURL)
@@ -40,15 +46,23 @@ func getPage(page int) {
 
 	searchCards := doc.Find(".item_recruit")
 	searchCards.Each(func(i int, card *goquery.Selection) { // 현재 찾은건 각각의 카드
-		id, _ := card.Attr("value")
-		fmt.Println(id)
-		title := card.Find(".area_job>.job_tit>a").Text()
-		fmt.Println(title)
-		location := card.Find(".area_job>.job_condition>span>a").Text()
-		fmt.Println(location)
-		sector := card.Find(".area_job>.job_sector>a").Text()
-		fmt.Println(sector)
+		job := extractJob(card)
+		jobs = append(jobs, job) // 윗줄에서 추출한 내용을 jobs에 업데이트
 	})
+	return jobs
+}
+
+func extractJob(card *goquery.Selection) extractedJob {
+	id, _ := card.Attr("value")
+	title := card.Find(".area_job>.job_tit>a").Text()
+	location := card.Find(".area_job>.job_condition>span>a").Text()
+	sector := card.Find(".area_job>.job_sector>a").Text()
+	return extractedJob{
+		id:       id,
+		title:    title,
+		location: location,
+		sector:   sector,
+	}
 }
 
 func getPages() int {
@@ -89,5 +103,5 @@ func checkCode(res *http.Response) {
 
 func cleanString(str string) string {
 
-	return str
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 빈공간을 제외한 문자열만 반환 제거한 내용을 join으로 합침
 }
