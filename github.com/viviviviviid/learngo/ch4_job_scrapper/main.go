@@ -31,6 +31,7 @@ func main() {
 	}
 
 	writeJobs(jobs)
+	fmt.Println("Done, extracted", len(jobs))
 }
 
 func writeJobs(jobs []extractedJob) { // csv 파일 저장 관련 함수 // go standard method 페이지에서 찾을 수 있음
@@ -44,6 +45,12 @@ func writeJobs(jobs []extractedJob) { // csv 파일 저장 관련 함수 // go s
 
 	wErr := w.Write(headers) // Write 메소드는 에러를 반환
 	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{"https://www.saramin.co.kr/zf_user/search/recruit?=&searchword=blockchain&exp_min=1&exp_max=1&recruitSort=relation&recruitPageCount=50" + job.id, job.title, job.location, job.sector}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
 }
 
 func getPage(page int) []extractedJob {
