@@ -14,12 +14,13 @@ import (
 
 type extractedJob struct {
 	id       string
+	company  string
 	title    string
 	location string
 	sector   string
 }
 
-var baseURL string = "https://www.saramin.co.kr/zf_user/search/recruit?=&searchword=blockchain&exp_min=1&exp_max=1&recruitSort=relation&recruitPageCount=3"
+var baseURL string = "https://www.saramin.co.kr/zf_user/search/recruit?=&searchword=blockchain&exp_min=1&exp_max=1&recruitSort=relation&recruitPageCount=50"
 
 func main() {
 	var jobs []extractedJob
@@ -41,13 +42,13 @@ func writeJobs(jobs []extractedJob) { // csv 파일 저장 관련 함수 // go s
 	w := csv.NewWriter(file) // writer 생성
 	defer w.Flush()          // 함수가 끝나는 시점, writer에 데이터 입력
 
-	headers := []string{"ID", "Title", "Location", "Sector"}
+	headers := []string{"ID", "Company", "Title", "Location", "Sector"}
 
 	wErr := w.Write(headers) // Write 메소드는 에러를 반환
 	checkErr(wErr)
 
 	for _, job := range jobs {
-		jobSlice := []string{"https://www.saramin.co.kr/zf_user/search/recruit?=&searchword=blockchain&exp_min=1&exp_max=1&recruitSort=relation&recruitPageCount=50" + job.id, job.title, job.location, job.sector}
+		jobSlice := []string{"https://www.saramin.co.kr/zf_user/jobs/relay/view?isMypage=no&rec_idx=" + job.id, job.company, job.title, job.location, job.sector}
 		jwErr := w.Write(jobSlice)
 		checkErr(jwErr)
 	}
@@ -76,11 +77,13 @@ func getPage(page int) []extractedJob {
 
 func extractJob(card *goquery.Selection) extractedJob {
 	id, _ := card.Attr("value")
-	title := card.Find(".area_job>.job_tit>a").Text()
-	location := card.Find(".area_job>.job_condition>span>a").Text()
-	sector := card.Find(".area_job>.job_sector>a").Text()
+	company := cleanString(card.Find(".area_corp>.corp_name>a").Text())
+	title := cleanString(card.Find(".area_job>.job_tit>a").Text())
+	location := cleanString(card.Find(".area_job>.job_condition>span>a").Text())
+	sector := cleanString(card.Find(".area_job>.job_sector>a").Text())
 	return extractedJob{
 		id:       id,
+		company:  company,
 		title:    title,
 		location: location,
 		sector:   sector,
