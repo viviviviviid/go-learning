@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -25,10 +27,23 @@ func main() {
 
 	for i := 0; i < totlaPages; i++ {
 		extractedJobs := getPage(i)
-		jobs = append(jobs, extractedJobs...) // 하나의 배열로 합침
+		jobs = append(jobs, extractedJobs...) // 하나의 배열로 합침 // ... 이 없으면 배열안에 배열이 추가되는 형태
 	}
 
-	fmt.Println(jobs)
+	writeJobs(jobs)
+}
+
+func writeJobs(jobs []extractedJob) { // csv 파일 저장 관련 함수 // go standard method 페이지에서 찾을 수 있음
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file) // writer 생성
+	defer w.Flush()          // 함수가 끝나는 시점, writer에 데이터 입력
+
+	headers := []string{"ID", "Title", "Location", "Sector"}
+
+	wErr := w.Write(headers) // Write 메소드는 에러를 반환
+	checkErr(wErr)
 }
 
 func getPage(page int) []extractedJob {
@@ -46,8 +61,8 @@ func getPage(page int) []extractedJob {
 
 	searchCards := doc.Find(".item_recruit")
 	searchCards.Each(func(i int, card *goquery.Selection) { // 현재 찾은건 각각의 카드
-		job := extractJob(card)
-		jobs = append(jobs, job) // 윗줄에서 추출한 내용을 jobs에 업데이트
+		job := extractJob(card)  // struct 내용을 여기에 저장
+		jobs = append(jobs, job) // 추출될떄마다 내용을 jobs에 업데이트
 	})
 	return jobs
 }
