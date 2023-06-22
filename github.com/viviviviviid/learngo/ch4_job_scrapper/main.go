@@ -1,5 +1,13 @@
 package main
 
+// FLOW
+// getPages로 몇 페이지인지 확인
+// 각 페이지별로 getPage가 실행. 여기 사이트에서는 9개
+// 이전 방식으로는 getPage를 하나하나 처리해줬는데, goroutines을 이용해서 한번에 처리하려함
+// getPage 내에 있는 extractJob 또한 하나의 일자리내용을 추출한 뒤 다음 내용을 진행함. -> 이것도 goroutines을 이용
+//
+// 50개의 extractJob가 동시진행되면, channel을 통해 getPage로 보내고, getPage가 전부 진행되면 channel을 통해 main으로 보냄
+// 즉 extractJob <-> getPage, getPage <-> main으로 총 두개의 channel이 필요함
 import (
 	"encoding/csv"
 	"fmt"
@@ -42,7 +50,7 @@ func writeJobs(jobs []extractedJob) { // csv 파일 저장 관련 함수 // go s
 	w := csv.NewWriter(file) // writer 생성
 	defer w.Flush()          // 함수가 끝나는 시점, writer에 데이터 입력
 
-	headers := []string{"ID", "Company", "Title", "Location", "Sector"}
+	headers := []string{"Link", "Company", "Title", "Location", "Sector"}
 
 	wErr := w.Write(headers) // Write 메소드는 에러를 반환
 	checkErr(wErr)
@@ -56,6 +64,7 @@ func writeJobs(jobs []extractedJob) { // csv 파일 저장 관련 함수 // go s
 
 func getPage(page int) []extractedJob {
 	var jobs []extractedJob
+	c := make(chan extractedJob)                              // extractJob이 goroutines의 channel을 통해 extractedJob struct 형태를 보낼 것임.
 	pageURL := baseURL + "&recruitPage=" + strconv.Itoa(page) // strconv.Itoa() : go에서 지원하는 string으로 바꾸는 함수
 	fmt.Println("Requesting ", pageURL)
 	res, err := http.Get(pageURL)
@@ -69,19 +78,24 @@ func getPage(page int) []extractedJob {
 
 	searchCards := doc.Find(".item_recruit")
 	searchCards.Each(func(i int, card *goquery.Selection) { // 현재 찾은건 각각의 카드
-		job := extractJob(card)  // struct 내용을 여기에 저장
-		jobs = append(jobs, job) // 추출될떄마다 내용을 jobs에 업데이트
+		go extractJob(card, c) // extracJob 함수에 채널을 인자로 입력
 	})
+	// extractJob 함수는 카드 하나마다 실행 될거기 때문애, searchCards의 길이만큼 반복문 실행
+	for i := 0; i < searchCards.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
+	}
+
 	return jobs
 }
 
-func extractJob(card *goquery.Selection) extractedJob {
+func extractJob(card *goquery.Selection, c chan<- extractedJob) extractedJob {
 	id, _ := card.Attr("value")
 	company := cleanString(card.Find(".area_corp>.corp_name>a").Text())
 	title := cleanString(card.Find(".area_job>.job_tit>a").Text())
 	location := cleanString(card.Find(".area_job>.job_condition>span>a").Text())
 	sector := cleanString(card.Find(".area_job>.job_sector>a").Text())
-	return extractedJob{
+	c <- extractedJob{ // goroutines
 		id:       id,
 		company:  company,
 		title:    title,
