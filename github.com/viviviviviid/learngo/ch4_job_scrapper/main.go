@@ -32,37 +32,23 @@ var baseURL string = "https://www.saramin.co.kr/zf_user/search/recruit?=&searchw
 
 func main() {
 	var jobs []extractedJob
-	totlaPages := getPages()
+	c := make(chan []extractedJob) // 이 채널로 일자리 정보가 여러개 전달되므로, 채널의 타입은 그냥 extractedJob가 아닌 []extractedJob
+	totalPages := getPages()
 
-	for i := 0; i < totlaPages; i++ {
-		extractedJobs := getPage(i)
-		jobs = append(jobs, extractedJobs...) // 하나의 배열로 합침 // ... 이 없으면 배열안에 배열이 추가되는 형태
+	for i := 0; i < totalPages; i++ { // 총 totalPages개 만큼의 goroutine이 생성
+		go getPage(i, c)
+	}
+
+	for i := 0; i < totalPages; i++ {
+		extractedJobs := <-c
+		jobs = append(jobs, extractedJobs...)
 	}
 
 	writeJobs(jobs)
 	fmt.Println("Done, extracted", len(jobs))
 }
 
-func writeJobs(jobs []extractedJob) { // csv 파일 저장 관련 함수 // go standard method 페이지에서 찾을 수 있음
-	file, err := os.Create("jobs.csv")
-	checkErr(err)
-
-	w := csv.NewWriter(file) // writer 생성
-	defer w.Flush()          // 함수가 끝나는 시점, writer에 데이터 입력
-
-	headers := []string{"Link", "Company", "Title", "Location", "Sector"}
-
-	wErr := w.Write(headers) // Write 메소드는 에러를 반환
-	checkErr(wErr)
-
-	for _, job := range jobs {
-		jobSlice := []string{"https://www.saramin.co.kr/zf_user/jobs/relay/view?isMypage=no&rec_idx=" + job.id, job.company, job.title, job.location, job.sector}
-		jwErr := w.Write(jobSlice)
-		checkErr(jwErr)
-	}
-}
-
-func getPage(page int) []extractedJob {
+func getPage(page int, mainC chan<- []extractedJob) {
 	var jobs []extractedJob
 	c := make(chan extractedJob)                              // extractJob이 goroutines의 channel을 통해 extractedJob struct 형태를 보낼 것임.
 	pageURL := baseURL + "&recruitPage=" + strconv.Itoa(page) // strconv.Itoa() : go에서 지원하는 string으로 바꾸는 함수
@@ -86,10 +72,10 @@ func getPage(page int) []extractedJob {
 		jobs = append(jobs, job)
 	}
 
-	return jobs
+	mainC <- jobs // return이 아니라 넘겨주기
 }
 
-func extractJob(card *goquery.Selection, c chan<- extractedJob) extractedJob {
+func extractJob(card *goquery.Selection, c chan<- extractedJob) {
 	id, _ := card.Attr("value")
 	company := cleanString(card.Find(".area_corp>.corp_name>a").Text())
 	title := cleanString(card.Find(".area_job>.job_tit>a").Text())
@@ -124,6 +110,25 @@ func getPages() int {
 	})
 
 	return pages
+}
+
+func writeJobs(jobs []extractedJob) { // csv 파일 저장 관련 함수 // go standard method 페이지에서 찾을 수 있음
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file) // writer 생성
+	defer w.Flush()          // 함수가 끝나는 시점, writer에 데이터 입력
+
+	headers := []string{"Link", "Company", "Title", "Location", "Sector"}
+
+	wErr := w.Write(headers) // Write 메소드는 에러를 반환
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{"https://www.saramin.co.kr/zf_user/jobs/relay/view?isMypage=no&rec_idx=" + job.id, job.company, job.title, job.location, job.sector}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
 }
 
 func checkErr(err error) {
