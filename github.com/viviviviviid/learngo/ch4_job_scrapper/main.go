@@ -66,7 +66,7 @@ func getPage(page int, mainC chan<- []extractedJob) {
 	searchCards.Each(func(i int, card *goquery.Selection) { // 현재 찾은건 각각의 카드
 		go extractJob(card, c) // extracJob 함수에 채널을 인자로 입력
 	})
-	// extractJob 함수는 카드 하나마다 실행 될거기 때문애, searchCards의 길이만큼 반복문 실행
+	// extractJob 함수는 카드 하나마다 실행 될거기 때문애, searchCards의 길이만큼 반복문 실행. 현재는 50
 	for i := 0; i < searchCards.Length(); i++ {
 		job := <-c
 		jobs = append(jobs, job)
