@@ -145,7 +145,7 @@ func checkCode(res *http.Response) {
 	}
 }
 
-func cleanString(str string) string {
-
+// CleanString string
+func CleanString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ") // 빈공간을 제외한 문자열만 반환 제거한 내용을 join으로 합침
 }
