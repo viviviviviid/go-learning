@@ -1,27 +1,29 @@
 package main
 
 import (
-	"fmt"
+	"os"
 	"strings"
 
 	"github.com/labstack/echo"
 	"github.com/m/viviviviviid/learngo/ch5_web_server_with_echo/scrapper"
 )
 
-// 서버 관련
+// echo 이용해서 서버돌리기 // echo docs가면 다양하게 볼게있음
 
 func handleHome(c echo.Context) error {
 	return c.File("home.html")
 }
 
+const fileName string = "jobs.csv"
+
 func handleScrape(c echo.Context) error {
+	defer os.Remove(fileName) // 다끝나고 서버에 저장된 파일 삭제
 	term := strings.ToLower(scrapper.CleanString(c.FormValue("term")))
-	fmt.Println(c.FormValue("term"))
-	return nil
+	scrapper.Scrape(term)
+	return c.Attachment(fileName, fileName)
 }
 
 func main() {
-	// scrapper.Scrape("python")
 	e := echo.New()
 	e.GET("/", handleHome)
 	e.POST("/scrape", handleScrape)

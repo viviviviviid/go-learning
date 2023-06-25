@@ -77,10 +77,10 @@ func getPage(page int, url string, mainC chan<- []extractedJob) {
 
 func extractJob(card *goquery.Selection, c chan<- extractedJob) {
 	id, _ := card.Attr("value")
-	company := cleanString(card.Find(".area_corp>.corp_name>a").Text())
-	title := cleanString(card.Find(".area_job>.job_tit>a").Text())
-	location := cleanString(card.Find(".area_job>.job_condition>span>a").Text())
-	sector := cleanString(card.Find(".area_job>.job_sector>a").Text())
+	company := CleanString(card.Find(".area_corp>.corp_name>a").Text())
+	title := CleanString(card.Find(".area_job>.job_tit>a").Text())
+	location := CleanString(card.Find(".area_job>.job_condition>span>a").Text())
+	sector := CleanString(card.Find(".area_job>.job_sector>a").Text())
 	c <- extractedJob{ // goroutines
 		id:       id,
 		company:  company,
